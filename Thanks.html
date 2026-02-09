@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will You Be My Valentine?</title>
+    <style>
+        body {
+            background-color: #ffb6c1; /* Light pink */
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            padding: 50px;
+            color: #333;
+        }
+        h1 {
+            color: #ff1493; /* Deep pink */
+            font-size: 3em;
+        }
+        .buttons {
+            margin-top: 50px;
+        }
+        button {
+            font-size: 2em;
+            padding: 20px 40px;
+            margin: 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #yes {
+            background-color: #32cd32; /* Green */
+            color: white;
+        }
+        #no {
+            background-color: #ff0000; /* Red */
+            color: white;
+        }
+        #message {
+            font-size: 1.5em;
+            margin-top: 30px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Will You Be My Valentine?</h1>
+    <div id="message"></div>
+    <div class="buttons">
+        <button id="yes">Yes</button>
+        <button id="no">No</button>
+    </div>
+
+    <script>
+        let noClickCount = 0;
+        const messages = [
+            "Are you sure?",
+            "No, think about it.",
+            "Again no, what's wrong with you?",
+            "Come on, say yes!",
+            "Last chance!"
+        ];
+
+        const yesButton = document.getElementById('yes');
+        const noButton = document.getElementById('no');
+        const messageDiv = document.getElementById('message');
+
+        noButton.addEventListener('click', () => {
+            if (noClickCount < 5) {
+                messageDiv.textContent = messages[noClickCount];
+                noClickCount++;
+                // Scatter the No button randomly
+                const maxX = window.innerWidth - noButton.offsetWidth;
+                const maxY = window.innerHeight - noButton.offsetHeight;
+                const randomX = Math.random() * maxX;
+                const randomY = Math.random() * maxY;
+                noButton.style.position = 'absolute';
+                noButton.style.left = randomX + 'px';
+                noButton.style.top = randomY + 'px';
+            } else {
+                // After 5th No, force Yes
+                messageDiv.textContent = "Okay, fine! Just click Yes already!";
+                noButton.style.display = 'none';
+                yesButton.style.position = 'static';
+                yesButton.style.margin = '20px auto';
+                yesButton.style.display = 'block';
+            }
+        });
+
+        yesButton.addEventListener('click', () => {
+            messageDiv.textContent = "Yay! Happy Valentine's Day! ❤️";
+            yesButton.style.display = 'none';
+            noButton.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
