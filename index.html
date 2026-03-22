@@ -1,99 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Will You Be My Valentine?</title>
-    <style>
-        body {
-            background-color: #ffb6c1; /* Light pink */
-            font-family: 'Arial', sans-serif;
-            text-align: center;
-            padding: 50px;
-            color: #333;
-        }
-        h1 {
-            color: #ff1493; /* Deep pink */
-            font-size: 3em;
-        }
-        .buttons {
-            margin-top: 50px;
-        }
-        button {
-            font-size: 2em;
-            padding: 20px 40px;
-            margin: 20px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        #yes {
-            background-color: #32cd32; /* Green */
-            color: white;
-        }
-        #no {
-            background-color: #ff0000; /* Red */
-            color: white;
-        }
-        #message {
-            font-size: 1.5em;
-            margin-top: 30px;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Test 🔐</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #1e1e2f, #3a0ca3);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 15px;
+}
+
+.box {
+  position: relative;
+  background: rgba(255,255,255,0.1);
+  padding: 25px;
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  transition: opacity 0.5s ease;
+}
+
+.fade-out { opacity: 0; }
+
+.tracker {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 14px;
+}
+
+.door {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.option {
+  margin: 10px 0;
+  padding: 12px;
+  background: #7209b7;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.option:hover {
+  background: #b5179e;
+  transform: scale(1.05);
+}
+
+input, button {
+  width: 90%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin-top: 10px;
+}
+
+button {
+  background: #ff4d6d;
+  color: white;
+  cursor: pointer;
+}
+
+.hidden { display: none; }
+</style>
 </head>
 <body>
-    <h1>Will You Be My Valentine?</h1>
-    <div id="message"></div>
-    <div class="buttons">
-        <button id="yes">Yes</button>
-        <button id="no">No</button>
-    </div>
 
-    <script>
-        let noClickCount = 0;
-        const messages = [
-            "Are you sure?",
-            "No, think about it.",
-            "Again no, what's wrong with you?",
-            "Come on, say yes!",
-            "Last chance!"
-        ];
+<div class="door" onclick="openGhost()">🚪</div>
 
-        const yesButton = document.getElementById('yes');
-        const noButton = document.getElementById('no');
-        const messageDiv = document.getElementById('message');
+<div class="box" id="step1">
+  <h2>Enter Passcode 🔐</h2>
+  <input type="password" id="pass1">
+  <button onclick="checkPass1()">Enter</button>
+  <p id="msg1"></p>
+</div>
 
-        noButton.addEventListener('click', () => {
-            if (noClickCount < 5) {
-                messageDiv.textContent = messages[noClickCount];
-                noClickCount++;
-                // Scatter the No button randomly
-                const maxX = window.innerWidth - noButton.offsetWidth;
-                const maxY = window.innerHeight - noButton.offsetHeight;
-                const randomX = Math.random() * maxX;
-                const randomY = Math.random() * maxY;
-                noButton.style.position = 'absolute';
-                noButton.style.left = randomX + 'px';
-                noButton.style.top = randomY + 'px';
-            } else {
-                // After 5th No, force Yes
-                messageDiv.textContent = "Okay, fine! Just click Yes already!";
-                noButton.style.display = 'none';
-                yesButton.style.position = 'static';
-                yesButton.style.margin = '20px auto';
-                yesButton.style.display = 'block';
-            }
-        });
+<div class="box hidden" id="step2">
+  <h2>Second Passcode 🔑</h2>
+  <input type="password" id="pass2">
+  <button onclick="checkPass2()">Enter</button>
+  <p id="msg2"></p>
+</div>
 
-        yesButton.addEventListener('click', () => {
-            messageDiv.textContent = "Yay! Happy Valentine's Day! ❤️";
-            yesButton.style.display = 'none';
-            noButton.style.display = 'none';
-        });
-    </script>
+<div class="box hidden" id="quizBox">
+  <div class="tracker" id="tracker"></div>
+  <h2 id="question"></h2>
+  <div id="options"></div>
+</div>
+
+<div class="box hidden" id="ghostLogin">
+  <h2>👻 Ghost Room</h2>
+  <input type="password" id="ghostPass" placeholder="Ghost Passcode">
+  <button onclick="checkGhost()">Enter</button>
+  <p id="ghostMsg"></p>
+</div>
+
+<div class="box hidden" id="ghostRoom">
+  <h2>👻 User Report (Local)</h2>
+  <div id="report"></div>
+</div>
+
+<script>
+
+let answers = [];
+
+// SEND DATA TO GOOGLE SHEETS
+function sendToSheet() {
+  let data = {
+    q1: answers[0]?.answer || "",
+    q2: answers[1]?.answer || "",
+    q3: answers[2]?.answer || "",
+    q4: answers[3]?.answer || ""
+  };
+
+  fetch("https://script.google.com/macros/s/AKfycbwKbxhfGZbPj9-KMG03FTPKRvupoLxI0xn1K6KFg4wOj7WpB45eTY5o97eEMifgo5BM/exec", {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+}
+
+// PASSCODE 1
+function checkPass1() {
+  if (pass1.value === "1921$") {
+    step1.classList.add("hidden");
+    step2.classList.remove("hidden");
+
+    document.querySelector(".door").style.display = "none";
+  } else {
+    msg1.innerText = "Wrong ❌";
+  }
+}
+
+// PASSCODE 2
+function checkPass2() {
+  if (pass2.value === "6369$") {
+    step2.classList.add("hidden");
+    quizBox.classList.remove("hidden");
+    loadQuestion();
+  } else {
+    msg2.innerText = "Wrong ❌";
+  }
+}
+
+// QUESTIONS
+let questions = [
+  { q: "1. Who are you?", options: ["Bittu","Kittu","Cat","Banty"] },
+  { q: "2. Are you?", options: ["Male","Female","Prefer not to say"] },
+  { q: "3. Is everything alright?", options: ["Yes","No"] },
+  { q: "4. Submit to me?", options: ["Cancel","Submit"] }
+];
+
+let current = 0;
+
+// LOAD QUESTION
+function loadQuestion() {
+  quizBox.classList.add("fade-out");
+
+  setTimeout(() => {
+    let q = questions[current];
+
+    question.innerText = q.q;
+    tracker.innerText = (current+1) + "/" + questions.length;
+
+    let html = "";
+    q.options.forEach(opt => {
+      html += `<div class="option" onclick="nextQuestion('${opt}')">${opt}</div>`;
+    });
+
+    options.innerHTML = html;
+    quizBox.classList.remove("fade-out");
+  }, 300);
+}
+
+// NEXT QUESTION
+function nextQuestion(choice) {
+
+  answers.push({
+    question: questions[current].q,
+    answer: choice
+  });
+
+  if (current === questions.length - 1) {
+    if (choice === "Submit") {
+
+      sendToSheet(); // 🔥 SEND DATA
+
+      quizBox.innerHTML = `<h2>👻 You notified Ghost</h2>`;
+    }
+    return;
+  }
+
+  current++;
+  loadQuestion();
+}
+
+// GHOST
+function openGhost() {
+  step1.classList.add("hidden");
+  step2.classList.add("hidden");
+  quizBox.classList.add("hidden");
+  ghostLogin.classList.remove("hidden");
+}
+
+function checkGhost() {
+  if (ghostPass.value === "GhostRoom1921$") {
+    ghostLogin.classList.add("hidden");
+    ghostRoom.classList.remove("hidden");
+
+    let data = "";
+    answers.forEach(a => {
+      data += `<p><b>${a.question}</b><br>${a.answer}</p>`;
+    });
+
+    report.innerHTML = data || "No data yet";
+  } else {
+    ghostMsg.innerText = "Wrong ❌";
+  }
+}
+
+</script>
+
 </body>
 </html>
