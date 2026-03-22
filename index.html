@@ -28,7 +28,7 @@ body {
   width: 100%;
   max-width: 400px;
   text-align: center;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.4s ease;
 }
 
 .fade-out { opacity: 0; }
@@ -81,8 +81,10 @@ button {
 </head>
 <body>
 
+<!-- 🚪 DOOR -->
 <div class="door" onclick="openGhost()">🚪</div>
 
+<!-- STEP 1 -->
 <div class="box" id="step1">
   <h2>Enter Passcode 🔐</h2>
   <input type="password" id="pass1">
@@ -90,6 +92,7 @@ button {
   <p id="msg1"></p>
 </div>
 
+<!-- STEP 2 -->
 <div class="box hidden" id="step2">
   <h2>Second Passcode 🔑</h2>
   <input type="password" id="pass2">
@@ -97,7 +100,153 @@ button {
   <p id="msg2"></p>
 </div>
 
+<!-- QUIZ -->
 <div class="box hidden" id="quizBox">
+  <div class="tracker" id="tracker"></div>
+  <h2 id="question"></h2>
+  <div id="options"></div>
+</div>
+
+<!-- GHOST LOGIN -->
+<div class="box hidden" id="ghostLogin">
+  <h2>👻 Ghost Room</h2>
+  <input type="password" id="ghostPass" placeholder="Ghost Passcode">
+  <button onclick="checkGhost()">Enter</button>
+  <p id="ghostMsg"></p>
+</div>
+
+<!-- GHOST ROOM -->
+<div class="box hidden" id="ghostRoom">
+  <h2>👻 User Report (Local)</h2>
+  <div id="report"></div>
+</div>
+
+<script>
+
+let answers = [];
+
+// ✅ SEND DATA TO GOOGLE SHEETS
+function sendToSheet() {
+  let data = {
+    q1: answers[0]?.answer || "",
+    q2: answers[1]?.answer || "",
+    q3: answers[2]?.answer || "",
+    q4: answers[3]?.answer || ""
+  };
+
+  fetch("https://script.google.com/macros/s/AKfycbwKbxhfGZbPj9-KMG03FTPKRvupoKFg4wOj7WTY5o97eEMifgo5BM/exec", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data),
+    mode: "no-cors"
+  });
+}
+
+// PASSCODE 1
+function checkPass1() {
+  if (pass1.value === "1921$") {
+    step1.classList.add("hidden");
+    step2.classList.remove("hidden");
+
+    document.querySelector(".door").style.display = "none";
+  } else {
+    msg1.innerText = "Wrong ❌";
+  }
+}
+
+// PASSCODE 2
+function checkPass2() {
+  if (pass2.value === "6369$") {
+    step2.classList.add("hidden");
+    quizBox.classList.remove("hidden");
+    loadQuestion();
+  } else {
+    msg2.innerText = "Wrong ❌";
+  }
+}
+
+// QUESTIONS
+let questions = [
+  { q: "1. Who are you?", options: ["Bittu","Kittu","Cat","Banty"] },
+  { q: "2. Are you?", options: ["Male","Female","Prefer not to say"] },
+  { q: "3. Is everything alright?", options: ["Yes","No"] },
+  { q: "4. Submit to me?", options: ["Cancel","Submit"] }
+];
+
+let current = 0;
+
+// LOAD QUESTION
+function loadQuestion() {
+  quizBox.classList.add("fade-out");
+
+  setTimeout(() => {
+    let q = questions[current];
+
+    question.innerText = q.q;
+    tracker.innerText = (current+1) + "/" + questions.length;
+
+    let html = "";
+    q.options.forEach(opt => {
+      html += `<div class="option" onclick="nextQuestion('${opt}')">${opt}</div>`;
+    });
+
+    options.innerHTML = html;
+    quizBox.classList.remove("fade-out");
+  }, 300);
+}
+
+// NEXT QUESTION
+function nextQuestion(choice) {
+
+  answers.push({
+    question: questions[current].q,
+    answer: choice
+  });
+
+  if (current === questions.length - 1) {
+    if (choice === "Submit") {
+
+      sendToSheet(); // 🔥 SAVE DATA
+
+      quizBox.innerHTML = `<h2>👻 You notified Ghost</h2>`;
+    }
+    return;
+  }
+
+  current++;
+  loadQuestion();
+}
+
+// GHOST ROOM
+function openGhost() {
+  step1.classList.add("hidden");
+  step2.classList.add("hidden");
+  quizBox.classList.add("hidden");
+  ghostLogin.classList.remove("hidden");
+}
+
+function checkGhost() {
+  if (ghostPass.value === "GhostRoom1921$") {
+    ghostLogin.classList.add("hidden");
+    ghostRoom.classList.remove("hidden");
+
+    let data = "";
+    answers.forEach(a => {
+      data += `<p><b>${a.question}</b><br>${a.answer}</p>`;
+    });
+
+    report.innerHTML = data || "No data yet";
+  } else {
+    ghostMsg.innerText = "Wrong ❌";
+  }
+}
+
+</script>
+
+</body>
+</html><div class="box hidden" id="quizBox">
   <div class="tracker" id="tracker"></div>
   <h2 id="question"></h2>
   <div id="options"></div>
