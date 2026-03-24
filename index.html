@@ -6,75 +6,75 @@
 <title>Student Test 🔐</title>
 
 <style>
-body {
-  margin:0;
-  font-family:'Segoe UI',sans-serif;
-  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
 }
 
-.box {
-  background:rgba(255,255,255,0.08);
-  padding:25px;
-  border-radius:20px;
-  width:90%;
-  max-width:400px;
-  text-align:center;
-  backdrop-filter:blur(15px);
-  transition:0.4s;
+.box{
+background:rgba(255,255,255,0.08);
+padding:25px;
+border-radius:20px;
+width:90%;
+max-width:400px;
+text-align:center;
+backdrop-filter:blur(15px);
+transition:0.4s;
 }
 
 .hidden{display:none;}
 
 .fade-out{
-  opacity:0;
-  transform:translateY(20px);
+opacity:0;
+transform:translateY(20px);
 }
 
 .option{
-  margin:10px 0;
-  padding:12px;
-  background:linear-gradient(45deg,#7209b7,#560bad);
-  border-radius:12px;
-  cursor:pointer;
-  transition:0.3s;
+margin:10px 0;
+padding:12px;
+background:linear-gradient(45deg,#7209b7,#560bad);
+border-radius:12px;
+cursor:pointer;
+transition:0.3s;
 }
 
 .option:hover{
-  transform:scale(1.05);
-  background:linear-gradient(45deg,#b5179e,#7209b7);
+transform:scale(1.05);
+background:linear-gradient(45deg,#b5179e,#7209b7);
 }
 
 .tracker{
-  position:absolute;
-  top:10px;
-  right:15px;
-  font-size:13px;
+position:absolute;
+top:10px;
+right:15px;
+font-size:13px;
 }
 
 .door{
-  position:fixed;
-  top:15px;
-  right:15px;
-  font-size:24px;
-  cursor:pointer;
+position:fixed;
+top:15px;
+right:15px;
+font-size:24px;
+cursor:pointer;
 }
 
 input,button{
-  width:90%;
-  padding:10px;
-  margin-top:10px;
-  border-radius:10px;
-  border:none;
+width:90%;
+padding:10px;
+margin-top:10px;
+border-radius:10px;
+border:none;
 }
 
 button{
-  background:#ff4d6d;
-  color:white;
+background:#ff4d6d;
+color:white;
 }
 </style>
 </head>
@@ -132,7 +132,25 @@ let startTime="";
 let endTime="";
 
 // 🔥 YOUR GOOGLE SCRIPT URL
-let scriptURL="https://script.google.com/macros/s/AKfycby7ZbhTUrd733F5-Ah5yAcd54w5aEe8egR68DIpcvSeN8PwRaRISo_YfRgjA9p4Nk5n/exec";
+let scriptURL="https://script.google.com/macros/s/AKfycbwKbxhfGZbPj9-KMG03FTPKRvupoKFg4wOj7WTY5o97eEMifgo5BM/exec";
+
+// 👇 USER INFO
+let userInfo={
+ip:"",
+city:"",
+country:"",
+browser:navigator.userAgent,
+device:/Mobi|Android/i.test(navigator.userAgent)?"Mobile":"Desktop"
+};
+
+// GET IP + LOCATION
+fetch("https://ipapi.co/json/")
+.then(res=>res.json())
+.then(data=>{
+userInfo.ip=data.ip;
+userInfo.city=data.city;
+userInfo.country=data.country_name;
+});
 
 // SEND DATA
 function sendToSheet(){
@@ -140,10 +158,17 @@ function sendToSheet(){
 let url=scriptURL+
 "?start="+encodeURIComponent(startTime)+
 "&end="+encodeURIComponent(endTime)+
+
 "&q1="+encodeURIComponent(answers[0]||"")+
 "&q2="+encodeURIComponent(answers[1]||"")+
 "&q3="+encodeURIComponent(answers[2]||"")+
-"&q4="+encodeURIComponent(answers[3]||"");
+"&q4="+encodeURIComponent(answers[3]||"")+
+
+"&ip="+encodeURIComponent(userInfo.ip)+
+"&city="+encodeURIComponent(userInfo.city)+
+"&country="+encodeURIComponent(userInfo.country)+
+"&browser="+encodeURIComponent(userInfo.browser)+
+"&device="+encodeURIComponent(userInfo.device);
 
 fetch(url);
 }
@@ -159,7 +184,7 @@ msg1.innerText="Wrong ❌";
 }
 }
 
-// PASSCODE 2 (START TIME)
+// PASSCODE 2
 function checkPass2(){
 if(pass2.value==="6369$"){
 step2.classList.add("hidden");
@@ -181,9 +206,8 @@ let questions=[
 {q:"4. Submit to me?",options:["Cancel","Submit"]}
 ];
 
-// LOAD QUESTION
+// LOAD
 function loadQuestion(){
-
 quizBox.classList.add("fade-out");
 
 setTimeout(()=>{
@@ -260,6 +284,10 @@ ghostMsg.innerText="Wrong ❌";
 }
 }
 
+</script>
+
+</body>
+</html>
 </script>
 
 </body>
