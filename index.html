@@ -8,8 +8,8 @@
 <style>
 body{
 margin:0;
-font-family:'Segoe UI',sans-serif;
-background:linear-gradient(135deg,#141e30,#243b55);
+font-family:Arial;
+background:linear-gradient(135deg,#1e1e2f,#3a0ca3);
 color:white;
 display:flex;
 justify-content:center;
@@ -18,13 +18,12 @@ min-height:100vh;
 }
 
 .box{
-background:rgba(255,255,255,0.08);
+background:rgba(255,255,255,0.1);
 padding:25px;
 border-radius:20px;
 width:90%;
 max-width:400px;
 text-align:center;
-backdrop-filter:blur(15px);
 }
 
 .hidden{display:none;}
@@ -32,30 +31,13 @@ backdrop-filter:blur(15px);
 .option{
 margin:10px 0;
 padding:12px;
-background:#6a00f4;
+background:#7209b7;
 border-radius:12px;
 cursor:pointer;
-transition:0.3s;
 }
 
 .option:hover{
-transform:scale(1.05);
-background:#9d4edd;
-}
-
-.tracker{
-position:absolute;
-top:10px;
-right:15px;
-font-size:12px;
-}
-
-.door{
-position:fixed;
-top:10px;
-right:10px;
-font-size:22px;
-cursor:pointer;
+background:#b5179e;
 }
 
 input,button{
@@ -75,8 +57,6 @@ color:white;
 
 <body>
 
-<div class="door" onclick="openGhost()">🚪</div>
-
 <div class="box" id="step1">
 <h2>Enter Passcode 🔐</h2>
 <input type="password" id="pass1">
@@ -92,217 +72,167 @@ color:white;
 </div>
 
 <div class="box hidden" id="quizBox">
-<div class="tracker" id="tracker"></div>
 <h2 id="question"></h2>
 <div id="options"></div>
-</div>
-
-<div class="box hidden" id="ghostLogin">
-<h2>👻 Ghost Room</h2>
-<input type="password" id="ghostPass">
-<button onclick="checkGhost()">Enter</button>
-<p id="ghostMsg"></p>
-</div>
-
-<div class="box hidden" id="ghostRoom">
-<h2>👻 Reports</h2>
-<div id="report"></div>
 </div>
 
 <script>
 
 // ==========================
-// 🔥 UNIQUE STUDENT ID
+// 🔥 GOOGLE SCRIPT URL (PUT YOURS)
+// ==========================
+let scriptURL = "https://script.google.com/macros/s/AKfycby7ZbhTUrd733F5-Ah5yAcd54w5aEe8egR68DIpcvSeN8PwRaRISo_YfRgjA9p4Nk5n/exec";
+
+// ==========================
+// 🔥 STUDENT ID
 // ==========================
 let studentID = localStorage.getItem("studentID");
 if (!studentID) {
-  studentID = "STU-" + Date.now() + "-" + Math.floor(Math.random()*10000);
+  studentID = "STU-" + Date.now();
   localStorage.setItem("studentID", studentID);
 }
 
 // ==========================
-// 🔥 DEVICE FINGERPRINT
+// 🔥 DEVICE ID
 // ==========================
-function generateDeviceID() {
-  let data = [
-    navigator.userAgent,
-    navigator.platform,
-    screen.width+"x"+screen.height,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-    navigator.language
-  ].join("|");
-
+function getDeviceID(){
+  let data = navigator.userAgent + screen.width + screen.height;
   let hash = 0;
-  for (let i = 0; i < data.length; i++) {
-    hash = ((hash << 5) - hash) + data.charCodeAt(i);
+  for (let i=0;i<data.length;i++){
+    hash = ((hash<<5)-hash)+data.charCodeAt(i);
     hash |= 0;
   }
-  return "DEV-" + Math.abs(hash);
+  return "DEV-"+Math.abs(hash);
 }
-
-let deviceID = generateDeviceID();
-
-// ==========================
-// 🌐 BROWSER
-// ==========================
-let ua = navigator.userAgent;
-let browser="Unknown";
-
-if(navigator.brave) browser="Brave";
-else if(ua.includes("Edg")) browser="Edge";
-else if(ua.includes("OPR")) browser="Opera";
-else if(ua.includes("SamsungBrowser")) browser="Samsung Browser";
-else if(ua.includes("Chrome")) browser="Chrome";
-else if(ua.includes("Safari")) browser="Safari";
-else if(ua.includes("Firefox")) browser="Firefox";
+let deviceID = getDeviceID();
 
 // ==========================
-// 📱 DEVICE
+// 🌍 LOCATION
 // ==========================
-let device="Unknown";
-
-if(ua.includes("Android")){
-let m=ua.match(/Android.*;\s([^)]+)\)/);
-device=m?m[1]:"Android";
-}
-else if(ua.includes("iPhone")) device="iPhone";
-else if(ua.includes("Windows")) device="Windows PC";
-else if(ua.includes("Mac")) device="Mac";
-
-// ==========================
-// 🌍 LOCATION (MULTI API)
-// ==========================
-let userInfo={ip:"",city:"",country:""};
-let loaded=false;
+let userInfo = {ip:"",city:"",country:""};
 
 async function getLocation(){
-try{
-let r1=await fetch("https://ipapi.co/json/");
-let d1=await r1.json();
+  try{
+    let res = await fetch("https://ipapi.co/json/");
+    let data = await res.json();
 
-let r2=await fetch("https://ipinfo.io/json");
-let d2=await r2.json();
-
-userInfo.ip=d1.ip||d2.ip;
-userInfo.city="Approx: "+(d1.city||d2.city);
-userInfo.country=d1.country_name||d2.country;
-
-loaded=true;
-}catch(e){loaded=true;}
+    userInfo.ip = data.ip || "NA";
+    userInfo.city = data.city || "NA";
+    userInfo.country = data.country_name || "NA";
+  }catch{
+    userInfo.ip="NA";
+    userInfo.city="NA";
+    userInfo.country="NA";
+  }
 }
-getLocation();
 
 // ==========================
 // 📤 SEND DATA
 // ==========================
-let scriptURL="https://script.google.com/macros/s/AKfycby7ZbhTUrd733F5-Ah5yAcd54w5aEe8egR68DIpcvSeN8PwRaRISo_YfRgjA9p4Nk5n/exec";
-
 function sendData(){
-let url=scriptURL+
-"?studentID="+encodeURIComponent(studentID)+
-"&deviceID="+encodeURIComponent(deviceID)+
-"&ip="+encodeURIComponent(userInfo.ip)+
-"&city="+encodeURIComponent(userInfo.city)+
-"&country="+encodeURIComponent(userInfo.country)+
-"&browser="+encodeURIComponent(browser)+
-"&device="+encodeURIComponent(device)+
-"&start="+encodeURIComponent(startTime)+
-"&end="+encodeURIComponent(endTime)+
-"&q1="+encodeURIComponent(ans[0]||"")+
-"&q2="+encodeURIComponent(ans[1]||"")+
-"&q3="+encodeURIComponent(ans[2]||"")+
-"&q4="+encodeURIComponent(ans[3]||"");
 
-(new Image()).src=url;
+  let url = scriptURL +
+  "?studentID=" + studentID +
+  "&deviceID=" + deviceID +
+  "&ip=" + userInfo.ip +
+  "&city=" + userInfo.city +
+  "&country=" + userInfo.country +
+  "&browser=" + navigator.userAgent +
+  "&device=" + navigator.platform +
+  "&start=" + startTime +
+  "&end=" + endTime +
+  "&q1=" + (answers[0]||"") +
+  "&q2=" + (answers[1]||"") +
+  "&q3=" + (answers[2]||"") +
+  "&q4=" + (answers[3]||"");
+
+  fetch(url)
+  .then(()=>console.log("Sent"))
+  .catch(()=>console.log("Error"));
 }
 
 // ==========================
-// QUIZ LOGIC
+// QUIZ
 // ==========================
-let ans=[];
-let cur=0;
-let startTime="",endTime="";
+let answers=[];
+let current=0;
+let startTime="";
+let endTime="";
 
-let qs=[
+let questions=[
 {q:"1. Who are you?",o:["Bittu","Kittu","Cat","Banty"]},
 {q:"2. Are you?",o:["Male","Female","Prefer not"]},
 {q:"3. All good?",o:["Yes","No"]},
 {q:"4. Submit?",o:["Cancel","Submit"]}
 ];
 
+// ==========================
+// PASSCODE
+// ==========================
 function checkPass1(){
 if(pass1.value==="1921$"){
 step1.classList.add("hidden");
 step2.classList.remove("hidden");
-}
+}else msg1.innerText="Wrong ❌";
 }
 
-function checkPass2(){
+async function checkPass2(){
+
 if(pass2.value==="6369$"){
-if(!loaded){msg2.innerText="Loading...";return;}
+
+msg2.innerText="Loading...";
+
+await getLocation(); // VERY IMPORTANT
+
 step2.classList.add("hidden");
 quizBox.classList.remove("hidden");
+
 startTime=new Date().toLocaleString();
-loadQ();
-}
+
+loadQuestion();
+
+}else msg2.innerText="Wrong ❌";
 }
 
-function loadQ(){
-let q=qs[cur];
+// ==========================
+// LOAD QUESTION
+// ==========================
+function loadQuestion(){
+
+let q=questions[current];
+
 question.innerText=q.q;
-tracker.innerText=(cur+1)+"/"+qs.length;
 
-let h="";
-q.o.forEach(x=>{
-h+=`<div class="option" onclick="nextQ('${x}')">${x}</div>`;
+let html="";
+q.o.forEach(opt=>{
+html+=`<div class="option" onclick="nextQuestion('${opt}')">${opt}</div>`;
 });
-options.innerHTML=h;
+
+options.innerHTML=html;
 }
 
-function nextQ(c){
-ans.push(c);
+// ==========================
+// NEXT QUESTION
+// ==========================
+function nextQuestion(choice){
 
-if(cur===qs.length-1){
-if(c==="Submit"){
+answers.push(choice);
+
+if(current===questions.length-1){
+
+if(choice==="Submit"){
 endTime=new Date().toLocaleString();
 sendData();
 quizBox.innerHTML="<h2>Submitted ✅</h2>";
 }
 return;
 }
-cur++;
-loadQ();
-}
 
-// ==========================
-// CLOSE TRACK
-// ==========================
-window.addEventListener("beforeunload",()=>{
-endTime=new Date().toLocaleString();
-sendData();
-});
-
-// ==========================
-// GHOST ROOM
-// ==========================
-function openGhost(){
-step1.classList.add("hidden");
-step2.classList.add("hidden");
-quizBox.classList.add("hidden");
-ghostLogin.classList.remove("hidden");
-}
-
-function checkGhost(){
-if(ghostPass.value==="GhostRoom1921$"){
-ghostLogin.classList.add("hidden");
-ghostRoom.classList.remove("hidden");
-
-let d="";
-ans.forEach((a,i)=>{d+=`<p>Q${i+1}: ${a}</p>`});
-report.innerHTML=d||"No data";
-}
+current++;
+loadQuestion();
 }
 
 </script>
+
 </body>
 </html>
