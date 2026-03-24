@@ -131,21 +131,57 @@ let current=0;
 let startTime="";
 let endTime="";
 
-// 🔥 YOUR SCRIPT URL
+// 🔥 YOUR GOOGLE SCRIPT URL
 let scriptURL="https://script.google.com/macros/s/AKfycby7ZbhTUrd733F5-Ah5yAcd54w5aEe8egR68DIpcvSeN8PwRaRISo_YfRgjA9p4Nk5n/exec";
 
-// USER INFO
+// 🌐 USER INFO (ADVANCED)
+let ua = navigator.userAgent;
+
+let browserName = "Unknown";
+
+// 🔥 BROWSER DETECTION
+if (navigator.brave) {
+  browserName = "Brave";
+}
+else if (ua.includes("Edg")) {
+  browserName = "Microsoft Edge";
+}
+else if (ua.includes("OPR") || ua.includes("Opera")) {
+  browserName = "Opera";
+}
+else if (ua.includes("SamsungBrowser")) {
+  browserName = "Samsung Internet";
+}
+else if (ua.includes("Chrome")) {
+  browserName = "Chrome";
+}
+else if (ua.includes("Safari")) {
+  browserName = "Safari";
+}
+else if (ua.includes("Firefox")) {
+  browserName = "Firefox";
+}
+
+// 📱 DEVICE DETECTION
+let deviceName = "Unknown Device";
+
+if (ua.includes("Windows")) deviceName = "Windows PC";
+else if (ua.includes("Mac")) deviceName = "Mac";
+else if (ua.includes("Android")) deviceName = "Android Phone";
+else if (ua.includes("iPhone")) deviceName = "iPhone";
+else if (ua.includes("iPad")) deviceName = "iPad";
+
 let userInfo={
 ip:"",
 city:"",
 country:"",
-browser:navigator.userAgent,
-device:/Mobi|Android/i.test(navigator.userAgent)?"Mobile":"Desktop"
+browser:browserName,
+device:deviceName
 };
 
 let ipLoaded=false;
 
-// GET IP
+// GET IP + LOCATION
 fetch("https://ipapi.co/json/")
 .then(res=>res.json())
 .then(data=>{
@@ -155,7 +191,7 @@ userInfo.country=data.country_name;
 ipLoaded=true;
 });
 
-// ✅ FINAL SEND FUNCTION (IMAGE METHOD)
+// 📤 SEND TO SHEET (FINAL FIX)
 function sendToSheet(){
 
 let url=scriptURL+
@@ -218,7 +254,7 @@ let questions=[
 {q:"4. Submit to me?",options:["Cancel","Submit"]}
 ];
 
-// LOAD
+// LOAD QUESTION
 function loadQuestion(){
 quizBox.classList.add("fade-out");
 
@@ -238,7 +274,7 @@ quizBox.classList.remove("fade-out");
 },300);
 }
 
-// NEXT
+// NEXT QUESTION
 function nextQuestion(choice){
 
 answers.push(choice);
@@ -260,7 +296,7 @@ current++;
 loadQuestion();
 }
 
-// TRACK CLOSE (FIXED)
+// TRACK CLOSE
 window.addEventListener("beforeunload",function(){
 
 endTime=new Date().toLocaleString();
@@ -271,10 +307,9 @@ let url=scriptURL+
 
 let img=new Image();
 img.src=url;
-
 });
 
-// GHOST
+// GHOST ROOM
 function openGhost(){
 step1.classList.add("hidden");
 step2.classList.add("hidden");
