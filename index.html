@@ -25,7 +25,6 @@ width:90%;
 max-width:400px;
 text-align:center;
 backdrop-filter:blur(15px);
-transition:0.4s;
 position:relative;
 }
 
@@ -132,7 +131,7 @@ let current=0;
 let startTime="";
 let endTime="";
 
-// GOOGLE SCRIPT URL
+// 🔥 YOUR SCRIPT URL
 let scriptURL="https://script.google.com/macros/s/AKfycby7ZbhTUrd733F5-Ah5yAcd54w5aEe8egR68DIpcvSeN8PwRaRISo_YfRgjA9p4Nk5n/exec";
 
 // USER INFO
@@ -146,7 +145,7 @@ device:/Mobi|Android/i.test(navigator.userAgent)?"Mobile":"Desktop"
 
 let ipLoaded=false;
 
-// GET IP + LOCATION
+// GET IP
 fetch("https://ipapi.co/json/")
 .then(res=>res.json())
 .then(data=>{
@@ -156,7 +155,7 @@ userInfo.country=data.country_name;
 ipLoaded=true;
 });
 
-// SEND DATA
+// ✅ FINAL SEND FUNCTION (IMAGE METHOD)
 function sendToSheet(){
 
 let url=scriptURL+
@@ -168,13 +167,14 @@ let url=scriptURL+
 "&q3="+encodeURIComponent(answers[2]||"")+
 "&q4="+encodeURIComponent(answers[3]||"")+
 
-"&ip="+encodeURIComponent(userInfo.ip)+
-"&city="+encodeURIComponent(userInfo.city)+
-"&country="+encodeURIComponent(userInfo.country)+
-"&browser="+encodeURIComponent(userInfo.browser)+
-"&device="+encodeURIComponent(userInfo.device);
+"&ip="+encodeURIComponent(userInfo.ip||"")+
+"&city="+encodeURIComponent(userInfo.city||"")+
+"&country="+encodeURIComponent(userInfo.country||"")+
+"&browser="+encodeURIComponent(userInfo.browser||"")+
+"&device="+encodeURIComponent(userInfo.device||"");
 
-fetch(url);
+let img=new Image();
+img.src=url;
 }
 
 // PASSCODE 1
@@ -188,13 +188,13 @@ msg1.innerText="Wrong ❌";
 }
 }
 
-// PASSCODE 2 (WAIT FOR IP)
+// PASSCODE 2
 function checkPass2(){
 
 if(pass2.value==="6369$"){
 
 if(!ipLoaded){
-msg2.innerText="⏳ Loading user info... wait 2 seconds";
+msg2.innerText="⏳ Loading... wait 2 sec";
 return;
 }
 
@@ -218,7 +218,7 @@ let questions=[
 {q:"4. Submit to me?",options:["Cancel","Submit"]}
 ];
 
-// LOAD QUESTION
+// LOAD
 function loadQuestion(){
 quizBox.classList.add("fade-out");
 
@@ -238,7 +238,7 @@ quizBox.classList.remove("fade-out");
 },300);
 }
 
-// NEXT QUESTION
+// NEXT
 function nextQuestion(choice){
 
 answers.push(choice);
@@ -260,7 +260,7 @@ current++;
 loadQuestion();
 }
 
-// TRACK TAB CLOSE
+// TRACK CLOSE (FIXED)
 window.addEventListener("beforeunload",function(){
 
 endTime=new Date().toLocaleString();
@@ -269,10 +269,12 @@ let url=scriptURL+
 "?start="+encodeURIComponent(startTime)+
 "&end="+encodeURIComponent(endTime);
 
-navigator.sendBeacon(url);
+let img=new Image();
+img.src=url;
+
 });
 
-// GHOST ROOM
+// GHOST
 function openGhost(){
 step1.classList.add("hidden");
 step2.classList.add("hidden");
