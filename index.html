@@ -131,51 +131,45 @@ let current=0;
 let startTime="";
 let endTime="";
 
-// 🔥 GOOGLE SCRIPT URL
+// 🔥 YOUR GOOGLE SCRIPT URL
 let scriptURL="https://script.google.com/macros/s/AKfycby7ZbhTUrd733F5-Ah5yAcd54w5aEe8egR68DIpcvSeN8PwRaRISo_YfRgjA9p4Nk5n/exec";
 
 // ==========================
 // 🌐 BROWSER DETECTION
 // ==========================
 let ua = navigator.userAgent;
-let browserName = "Unknown";
+let browserName="Unknown";
 
-if (navigator.brave) browserName = "Brave";
-else if (ua.includes("Edg")) browserName = "Microsoft Edge";
-else if (ua.includes("OPR") || ua.includes("Opera")) browserName = "Opera";
-else if (ua.includes("SamsungBrowser")) browserName = "Samsung Internet";
-else if (ua.includes("Chrome")) browserName = "Chrome";
-else if (ua.includes("Safari")) browserName = "Safari";
-else if (ua.includes("Firefox")) browserName = "Firefox";
+if (navigator.brave) browserName="Brave";
+else if (ua.includes("Edg")) browserName="Edge";
+else if (ua.includes("OPR")) browserName="Opera";
+else if (ua.includes("SamsungBrowser")) browserName="Samsung Internet";
+else if (ua.includes("Chrome")) browserName="Chrome";
+else if (ua.includes("Safari")) browserName="Safari";
+else if (ua.includes("Firefox")) browserName="Firefox";
 
 // ==========================
-// 📱 ADVANCED DEVICE DETECTION
+// 📱 DEVICE DETECTION
 // ==========================
-let deviceName = "Unknown Device";
+let deviceName="Unknown Device";
 
 if (ua.includes("Android")) {
-
   let match = ua.match(/Android.*;\s([^)]+)\)/);
-
   if (match && match[1]) {
     let model = match[1];
 
-    if (model.startsWith("SM")) deviceName = "Samsung (" + model + ")";
-    else if (model.toLowerCase().includes("redmi")) deviceName = "Xiaomi Redmi (" + model + ")";
-    else if (model.toLowerCase().includes("mi")) deviceName = "Xiaomi (" + model + ")";
-    else if (model.toLowerCase().includes("vivo")) deviceName = "Vivo (" + model + ")";
-    else if (model.toLowerCase().includes("oppo")) deviceName = "Oppo (" + model + ")";
-    else if (model.toLowerCase().includes("realme")) deviceName = "Realme (" + model + ")";
-    else if (model.toLowerCase().includes("oneplus")) deviceName = "OnePlus (" + model + ")";
-    else deviceName = "Android (" + model + ")";
-  } else {
-    deviceName = "Android Device";
-  }
+    if (model.startsWith("SM")) deviceName="Samsung ("+model+")";
+    else if (model.toLowerCase().includes("vivo")) deviceName="Vivo ("+model+")";
+    else if (model.toLowerCase().includes("oppo")) deviceName="Oppo ("+model+")";
+    else if (model.toLowerCase().includes("realme")) deviceName="Realme ("+model+")";
+    else if (model.toLowerCase().includes("redmi")) deviceName="Redmi ("+model+")";
+    else deviceName="Android ("+model+")";
+  } else deviceName="Android Device";
 }
-else if (ua.includes("iPhone")) deviceName = "Apple iPhone";
-else if (ua.includes("iPad")) deviceName = "Apple iPad";
-else if (ua.includes("Windows")) deviceName = "Windows PC";
-else if (ua.includes("Mac")) deviceName = "Mac";
+else if (ua.includes("iPhone")) deviceName="iPhone";
+else if (ua.includes("iPad")) deviceName="iPad";
+else if (ua.includes("Windows")) deviceName="Windows PC";
+else if (ua.includes("Mac")) deviceName="Mac";
 
 // USER INFO
 let userInfo={
@@ -188,18 +182,36 @@ device:deviceName
 
 let ipLoaded=false;
 
-// GET IP
-fetch("https://ipapi.co/json/")
-.then(res=>res.json())
-.then(data=>{
-userInfo.ip=data.ip;
-userInfo.city=data.city;
-userInfo.country=data.country_name;
+// ==========================
+// 🌍 MULTI API LOCATION
+// ==========================
+async function getLocation(){
+try{
+let res1=await fetch("https://ipapi.co/json/");
+let data1=await res1.json();
+
+let res2=await fetch("https://ipinfo.io/json");
+let data2=await res2.json();
+
+let city=data1.city || data2.city || "Unknown";
+let region=data1.region || data2.region || "";
+let country=data1.country_name || data2.country || "";
+
+userInfo.ip=data1.ip || data2.ip;
+userInfo.city="Approx: "+city+", "+region;
+userInfo.country=country;
+
 ipLoaded=true;
-});
+
+}catch(e){
+ipLoaded=true;
+}
+}
+
+getLocation();
 
 // ==========================
-// 📤 SEND DATA (FINAL FIX)
+// 📤 SEND TO SHEET
 // ==========================
 function sendToSheet(){
 
@@ -228,9 +240,7 @@ if(pass1.value==="1921$"){
 step1.classList.add("hidden");
 step2.classList.remove("hidden");
 document.querySelector(".door").style.display="none";
-}else{
-msg1.innerText="Wrong ❌";
-}
+}else msg1.innerText="Wrong ❌";
 }
 
 // PASSCODE 2
@@ -238,7 +248,7 @@ function checkPass2(){
 if(pass2.value==="6369$"){
 
 if(!ipLoaded){
-msg2.innerText="⏳ Loading... wait 2 sec";
+msg2.innerText="⏳ Loading...";
 return;
 }
 
@@ -248,9 +258,7 @@ quizBox.classList.remove("hidden");
 startTime=new Date().toLocaleString();
 loadQuestion();
 
-}else{
-msg2.innerText="Wrong ❌";
-}
+}else msg2.innerText="Wrong ❌";
 }
 
 // QUESTIONS
@@ -261,7 +269,7 @@ let questions=[
 {q:"4. Submit to me?",options:["Cancel","Submit"]}
 ];
 
-// LOAD
+// LOAD QUESTION
 function loadQuestion(){
 quizBox.classList.add("fade-out");
 
@@ -287,7 +295,6 @@ function nextQuestion(choice){
 answers.push(choice);
 
 if(current===questions.length-1){
-
 if(choice==="Submit"){
 endTime=new Date().toLocaleString();
 sendToSheet();
@@ -301,8 +308,7 @@ loadQuestion();
 }
 
 // CLOSE TRACK
-window.addEventListener("beforeunload",function(){
-
+window.addEventListener("beforeunload",()=>{
 endTime=new Date().toLocaleString();
 
 let url=scriptURL+
@@ -311,10 +317,9 @@ let url=scriptURL+
 
 let img=new Image();
 img.src=url;
-
 });
 
-// GHOST ROOM
+// GHOST
 function openGhost(){
 step1.classList.add("hidden");
 step2.classList.add("hidden");
@@ -333,9 +338,7 @@ data+=`<p><b>Q${i+1}</b>: ${a}</p>`;
 });
 
 report.innerHTML=data||"No data yet";
-}else{
-ghostMsg.innerText="Wrong ❌";
-}
+}else ghostMsg.innerText="Wrong ❌";
 }
 
 </script>
