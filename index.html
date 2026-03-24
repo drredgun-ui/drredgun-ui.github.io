@@ -131,46 +131,53 @@ let current=0;
 let startTime="";
 let endTime="";
 
-// 🔥 YOUR GOOGLE SCRIPT URL
+// 🔥 GOOGLE SCRIPT URL
 let scriptURL="https://script.google.com/macros/s/AKfycby7ZbhTUrd733F5-Ah5yAcd54w5aEe8egR68DIpcvSeN8PwRaRISo_YfRgjA9p4Nk5n/exec";
 
-// 🌐 USER INFO (ADVANCED)
+// ==========================
+// 🌐 BROWSER DETECTION
+// ==========================
 let ua = navigator.userAgent;
-
 let browserName = "Unknown";
 
-// 🔥 BROWSER DETECTION
-if (navigator.brave) {
-  browserName = "Brave";
-}
-else if (ua.includes("Edg")) {
-  browserName = "Microsoft Edge";
-}
-else if (ua.includes("OPR") || ua.includes("Opera")) {
-  browserName = "Opera";
-}
-else if (ua.includes("SamsungBrowser")) {
-  browserName = "Samsung Internet";
-}
-else if (ua.includes("Chrome")) {
-  browserName = "Chrome";
-}
-else if (ua.includes("Safari")) {
-  browserName = "Safari";
-}
-else if (ua.includes("Firefox")) {
-  browserName = "Firefox";
-}
+if (navigator.brave) browserName = "Brave";
+else if (ua.includes("Edg")) browserName = "Microsoft Edge";
+else if (ua.includes("OPR") || ua.includes("Opera")) browserName = "Opera";
+else if (ua.includes("SamsungBrowser")) browserName = "Samsung Internet";
+else if (ua.includes("Chrome")) browserName = "Chrome";
+else if (ua.includes("Safari")) browserName = "Safari";
+else if (ua.includes("Firefox")) browserName = "Firefox";
 
-// 📱 DEVICE DETECTION
+// ==========================
+// 📱 ADVANCED DEVICE DETECTION
+// ==========================
 let deviceName = "Unknown Device";
 
-if (ua.includes("Windows")) deviceName = "Windows PC";
-else if (ua.includes("Mac")) deviceName = "Mac";
-else if (ua.includes("Android")) deviceName = "Android Phone";
-else if (ua.includes("iPhone")) deviceName = "iPhone";
-else if (ua.includes("iPad")) deviceName = "iPad";
+if (ua.includes("Android")) {
 
+  let match = ua.match(/Android.*;\s([^)]+)\)/);
+
+  if (match && match[1]) {
+    let model = match[1];
+
+    if (model.startsWith("SM")) deviceName = "Samsung (" + model + ")";
+    else if (model.toLowerCase().includes("redmi")) deviceName = "Xiaomi Redmi (" + model + ")";
+    else if (model.toLowerCase().includes("mi")) deviceName = "Xiaomi (" + model + ")";
+    else if (model.toLowerCase().includes("vivo")) deviceName = "Vivo (" + model + ")";
+    else if (model.toLowerCase().includes("oppo")) deviceName = "Oppo (" + model + ")";
+    else if (model.toLowerCase().includes("realme")) deviceName = "Realme (" + model + ")";
+    else if (model.toLowerCase().includes("oneplus")) deviceName = "OnePlus (" + model + ")";
+    else deviceName = "Android (" + model + ")";
+  } else {
+    deviceName = "Android Device";
+  }
+}
+else if (ua.includes("iPhone")) deviceName = "Apple iPhone";
+else if (ua.includes("iPad")) deviceName = "Apple iPad";
+else if (ua.includes("Windows")) deviceName = "Windows PC";
+else if (ua.includes("Mac")) deviceName = "Mac";
+
+// USER INFO
 let userInfo={
 ip:"",
 city:"",
@@ -181,7 +188,7 @@ device:deviceName
 
 let ipLoaded=false;
 
-// GET IP + LOCATION
+// GET IP
 fetch("https://ipapi.co/json/")
 .then(res=>res.json())
 .then(data=>{
@@ -191,7 +198,9 @@ userInfo.country=data.country_name;
 ipLoaded=true;
 });
 
-// 📤 SEND TO SHEET (FINAL FIX)
+// ==========================
+// 📤 SEND DATA (FINAL FIX)
+// ==========================
 function sendToSheet(){
 
 let url=scriptURL+
@@ -226,7 +235,6 @@ msg1.innerText="Wrong ❌";
 
 // PASSCODE 2
 function checkPass2(){
-
 if(pass2.value==="6369$"){
 
 if(!ipLoaded){
@@ -238,7 +246,6 @@ step2.classList.add("hidden");
 quizBox.classList.remove("hidden");
 
 startTime=new Date().toLocaleString();
-
 loadQuestion();
 
 }else{
@@ -254,7 +261,7 @@ let questions=[
 {q:"4. Submit to me?",options:["Cancel","Submit"]}
 ];
 
-// LOAD QUESTION
+// LOAD
 function loadQuestion(){
 quizBox.classList.add("fade-out");
 
@@ -274,7 +281,7 @@ quizBox.classList.remove("fade-out");
 },300);
 }
 
-// NEXT QUESTION
+// NEXT
 function nextQuestion(choice){
 
 answers.push(choice);
@@ -282,11 +289,8 @@ answers.push(choice);
 if(current===questions.length-1){
 
 if(choice==="Submit"){
-
 endTime=new Date().toLocaleString();
-
 sendToSheet();
-
 quizBox.innerHTML="<h2>👻 You notified Ghost</h2>";
 }
 return;
@@ -296,7 +300,7 @@ current++;
 loadQuestion();
 }
 
-// TRACK CLOSE
+// CLOSE TRACK
 window.addEventListener("beforeunload",function(){
 
 endTime=new Date().toLocaleString();
@@ -307,6 +311,7 @@ let url=scriptURL+
 
 let img=new Image();
 img.src=url;
+
 });
 
 // GHOST ROOM
