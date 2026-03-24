@@ -7,93 +7,132 @@
 
 <style>
 body {
-  margin:0;
-  font-family:Arial;
-  background: linear-gradient(135deg,#1e1e2f,#3a0ca3);
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
+/* GLASS CARD */
 .box {
-  position:relative;
-  background: rgba(255,255,255,0.1);
-  padding:25px;
-  border-radius:20px;
-  width:90%;
-  max-width:400px;
-  text-align:center;
-  transition:0.4s;
+  position: relative;
+  background: rgba(255,255,255,0.08);
+  padding: 25px;
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 0 30px rgba(0,0,0,0.6);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  transition: all 0.4s ease;
 }
 
-.hidden { display:none; }
-.fade { opacity:0; }
-
-.option {
-  background:#7209b7;
-  padding:12px;
-  margin:10px;
-  border-radius:12px;
-  cursor:pointer;
-  transition:0.3s;
+/* FADE ANIMATION */
+.fade-out {
+  opacity: 0;
+  transform: translateY(20px);
 }
 
-.option:hover {
-  background:#b5179e;
-  transform:scale(1.05);
-}
-
+/* TRACKER */
 .tracker {
-  position:absolute;
-  top:10px;
-  right:15px;
-  font-size:14px;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 13px;
+  opacity: 0.7;
 }
 
+/* DOOR */
 .door {
-  position:fixed;
-  top:10px;
-  right:10px;
-  font-size:22px;
-  cursor:pointer;
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  font-size: 26px;
+  cursor: pointer;
+  transition: 0.3s;
 }
+.door:hover {
+  transform: scale(1.2);
+}
+
+/* OPTIONS */
+.option {
+  margin: 10px 0;
+  padding: 12px;
+  background: linear-gradient(45deg,#7209b7,#560bad);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.option:hover {
+  background: linear-gradient(45deg,#b5179e,#7209b7);
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #b5179e;
+}
+
+/* INPUT */
+input, button {
+  width: 90%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin-top: 10px;
+}
+
+/* BUTTON */
+button {
+  background: linear-gradient(45deg,#ff4d6d,#ff758f);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #ff4d6d;
+}
+
+.hidden { display: none; }
+
 </style>
 </head>
-
 <body>
 
 <div class="door" onclick="openGhost()">🚪</div>
 
 <div class="box" id="step1">
-<h2>Enter Passcode</h2>
-<input type="password" id="pass1">
-<button onclick="checkPass1()">Enter</button>
+  <h2>Enter Passcode 🔐</h2>
+  <input type="password" id="pass1">
+  <button onclick="checkPass1()">Enter</button>
+  <p id="msg1"></p>
 </div>
 
 <div class="box hidden" id="step2">
-<h2>Second Passcode</h2>
-<input type="password" id="pass2">
-<button onclick="checkPass2()">Enter</button>
+  <h2>Second Passcode 🔑</h2>
+  <input type="password" id="pass2">
+  <button onclick="checkPass2()">Enter</button>
+  <p id="msg2"></p>
 </div>
 
 <div class="box hidden" id="quizBox">
-<div class="tracker" id="tracker"></div>
-<h2 id="question"></h2>
-<div id="options"></div>
+  <div class="tracker" id="tracker"></div>
+  <h2 id="question"></h2>
+  <div id="options"></div>
 </div>
 
 <div class="box hidden" id="ghostLogin">
-<h2>👻 Ghost Room</h2>
-<input type="password" id="ghostPass">
-<button onclick="checkGhost()">Enter</button>
-<p id="ghostMsg"></p>
+  <h2>👻 Ghost Room</h2>
+  <input type="password" id="ghostPass">
+  <button onclick="checkGhost()">Enter</button>
+  <p id="ghostMsg"></p>
 </div>
 
 <div class="box hidden" id="ghostRoom">
-<h2>👻 Reports</h2>
-<div id="report"></div>
+  <h2>👻 Reports</h2>
+  <div id="report"></div>
 </div>
 
 <script>
@@ -111,7 +150,7 @@ let current = 0;
 
 // GOOGLE SHEETS
 function sendToSheet(){
-let url="https://script.google.com/macros/s/AKfycbwliffiKXHHBnJOQCZMzckmVU0fhv2NQ0CC8Nk-cRPgrIVWu0U-IHOpX5J_GrNF556pfw/exec";
+let url="https://script.google.com/macros/s/AKfycbwKbxhfGZbPj9-KMG03FTPKRvupoKFg4wOj7WTY5o97eEMifgo5BM/exec";
 
 url += "?q1="+encodeURIComponent(answers[0]||"");
 url += "&q2="+encodeURIComponent(answers[1]||"");
@@ -121,20 +160,25 @@ url += "&q4="+encodeURIComponent(answers[3]||"");
 fetch(url);
 }
 
-// PASSCODES
+// PASSCODE 1
 function checkPass1(){
 if(pass1.value==="1921$"){
 step1.classList.add("hidden");
 step2.classList.remove("hidden");
 document.querySelector(".door").style.display="none";
+}else{
+msg1.innerText="Wrong ❌";
 }
 }
 
+// PASSCODE 2
 function checkPass2(){
 if(pass2.value==="6369$"){
 step2.classList.add("hidden");
 quizBox.classList.remove("hidden");
 loadQuestion();
+}else{
+msg2.innerText="Wrong ❌";
 }
 }
 
@@ -146,10 +190,10 @@ let questions=[
 {q:"4. Submit to me?", options:["Cancel","Submit"]}
 ];
 
-// LOAD QUESTION WITH ANIMATION
+// LOAD QUESTION
 function loadQuestion(){
 
-quizBox.classList.add("fade");
+quizBox.classList.add("fade-out");
 
 setTimeout(()=>{
 let q=questions[current];
@@ -163,8 +207,8 @@ html+=`<div class="option" onclick="nextQuestion('${opt}')">${opt}</div>`;
 });
 
 options.innerHTML=html;
-quizBox.classList.remove("fade");
-},200);
+quizBox.classList.remove("fade-out");
+},300);
 
 }
 
@@ -187,7 +231,7 @@ current++;
 loadQuestion();
 }
 
-// GHOST ROOM
+// GHOST
 function openGhost(){
 step1.classList.add("hidden");
 step2.classList.add("hidden");
@@ -211,10 +255,6 @@ ghostMsg.innerText="Wrong ❌";
 }
 }
 
-</script>
-
-</body>
-</html>
 </script>
 
 </body>
