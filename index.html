@@ -9,7 +9,7 @@
 body{
 margin:0;
 font-family:'Segoe UI',sans-serif;
-background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+background:linear-gradient(135deg,#141e30,#243b55);
 color:white;
 display:flex;
 justify-content:center;
@@ -25,20 +25,14 @@ width:90%;
 max-width:400px;
 text-align:center;
 backdrop-filter:blur(15px);
-position:relative;
 }
 
 .hidden{display:none;}
 
-.fade-out{
-opacity:0;
-transform:translateY(20px);
-}
-
 .option{
 margin:10px 0;
 padding:12px;
-background:linear-gradient(45deg,#7209b7,#560bad);
+background:#6a00f4;
 border-radius:12px;
 cursor:pointer;
 transition:0.3s;
@@ -46,21 +40,21 @@ transition:0.3s;
 
 .option:hover{
 transform:scale(1.05);
-background:linear-gradient(45deg,#b5179e,#7209b7);
+background:#9d4edd;
 }
 
 .tracker{
 position:absolute;
 top:10px;
 right:15px;
-font-size:13px;
+font-size:12px;
 }
 
 .door{
 position:fixed;
-top:15px;
-right:15px;
-font-size:24px;
+top:10px;
+right:10px;
+font-size:22px;
 cursor:pointer;
 }
 
@@ -117,209 +111,180 @@ color:white;
 
 <script>
 
-// ELEMENTS
-const step1=document.getElementById("step1");
-const step2=document.getElementById("step2");
-const quizBox=document.getElementById("quizBox");
-const question=document.getElementById("question");
-const options=document.getElementById("options");
-const tracker=document.getElementById("tracker");
-
-// DATA
-let answers=[];
-let current=0;
-let startTime="";
-let endTime="";
-
-// 🔥 YOUR GOOGLE SCRIPT URL
-let scriptURL="https://script.google.com/macros/s/AKfycby7ZbhTUrd733F5-Ah5yAcd54w5aEe8egR68DIpcvSeN8PwRaRISo_YfRgjA9p4Nk5n/exec";
+// ==========================
+// 🔥 UNIQUE STUDENT ID
+// ==========================
+let studentID = localStorage.getItem("studentID");
+if (!studentID) {
+  studentID = "STU-" + Date.now() + "-" + Math.floor(Math.random()*10000);
+  localStorage.setItem("studentID", studentID);
+}
 
 // ==========================
-// 🌐 BROWSER DETECTION
+// 🔥 DEVICE FINGERPRINT
+// ==========================
+function generateDeviceID() {
+  let data = [
+    navigator.userAgent,
+    navigator.platform,
+    screen.width+"x"+screen.height,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    navigator.language
+  ].join("|");
+
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    hash = ((hash << 5) - hash) + data.charCodeAt(i);
+    hash |= 0;
+  }
+  return "DEV-" + Math.abs(hash);
+}
+
+let deviceID = generateDeviceID();
+
+// ==========================
+// 🌐 BROWSER
 // ==========================
 let ua = navigator.userAgent;
-let browserName="Unknown";
+let browser="Unknown";
 
-if (navigator.brave) browserName="Brave";
-else if (ua.includes("Edg")) browserName="Edge";
-else if (ua.includes("OPR")) browserName="Opera";
-else if (ua.includes("SamsungBrowser")) browserName="Samsung Internet";
-else if (ua.includes("Chrome")) browserName="Chrome";
-else if (ua.includes("Safari")) browserName="Safari";
-else if (ua.includes("Firefox")) browserName="Firefox";
+if(navigator.brave) browser="Brave";
+else if(ua.includes("Edg")) browser="Edge";
+else if(ua.includes("OPR")) browser="Opera";
+else if(ua.includes("SamsungBrowser")) browser="Samsung Browser";
+else if(ua.includes("Chrome")) browser="Chrome";
+else if(ua.includes("Safari")) browser="Safari";
+else if(ua.includes("Firefox")) browser="Firefox";
 
 // ==========================
-// 📱 DEVICE DETECTION
+// 📱 DEVICE
 // ==========================
-let deviceName="Unknown Device";
+let device="Unknown";
 
-if (ua.includes("Android")) {
-  let match = ua.match(/Android.*;\s([^)]+)\)/);
-  if (match && match[1]) {
-    let model = match[1];
-
-    if (model.startsWith("SM")) deviceName="Samsung ("+model+")";
-    else if (model.toLowerCase().includes("vivo")) deviceName="Vivo ("+model+")";
-    else if (model.toLowerCase().includes("oppo")) deviceName="Oppo ("+model+")";
-    else if (model.toLowerCase().includes("realme")) deviceName="Realme ("+model+")";
-    else if (model.toLowerCase().includes("redmi")) deviceName="Redmi ("+model+")";
-    else deviceName="Android ("+model+")";
-  } else deviceName="Android Device";
+if(ua.includes("Android")){
+let m=ua.match(/Android.*;\s([^)]+)\)/);
+device=m?m[1]:"Android";
 }
-else if (ua.includes("iPhone")) deviceName="iPhone";
-else if (ua.includes("iPad")) deviceName="iPad";
-else if (ua.includes("Windows")) deviceName="Windows PC";
-else if (ua.includes("Mac")) deviceName="Mac";
-
-// USER INFO
-let userInfo={
-ip:"",
-city:"",
-country:"",
-browser:browserName,
-device:deviceName
-};
-
-let ipLoaded=false;
+else if(ua.includes("iPhone")) device="iPhone";
+else if(ua.includes("Windows")) device="Windows PC";
+else if(ua.includes("Mac")) device="Mac";
 
 // ==========================
-// 🌍 MULTI API LOCATION
+// 🌍 LOCATION (MULTI API)
 // ==========================
+let userInfo={ip:"",city:"",country:""};
+let loaded=false;
+
 async function getLocation(){
 try{
-let res1=await fetch("https://ipapi.co/json/");
-let data1=await res1.json();
+let r1=await fetch("https://ipapi.co/json/");
+let d1=await r1.json();
 
-let res2=await fetch("https://ipinfo.io/json");
-let data2=await res2.json();
+let r2=await fetch("https://ipinfo.io/json");
+let d2=await r2.json();
 
-let city=data1.city || data2.city || "Unknown";
-let region=data1.region || data2.region || "";
-let country=data1.country_name || data2.country || "";
+userInfo.ip=d1.ip||d2.ip;
+userInfo.city="Approx: "+(d1.city||d2.city);
+userInfo.country=d1.country_name||d2.country;
 
-userInfo.ip=data1.ip || data2.ip;
-userInfo.city="Approx: "+city+", "+region;
-userInfo.country=country;
-
-ipLoaded=true;
-
-}catch(e){
-ipLoaded=true;
+loaded=true;
+}catch(e){loaded=true;}
 }
-}
-
 getLocation();
 
 // ==========================
-// 📤 SEND TO SHEET
+// 📤 SEND DATA
 // ==========================
-function sendToSheet(){
+let scriptURL="https://script.google.com/macros/s/AKfycbwKbxhfGZbPj9-KMG03FTPKRvupoKFg4wOj7WTY5o97eEMifgo5BM/exec";
 
+function sendData(){
 let url=scriptURL+
-"?start="+encodeURIComponent(startTime)+
+"?studentID="+encodeURIComponent(studentID)+
+"&deviceID="+encodeURIComponent(deviceID)+
+"&ip="+encodeURIComponent(userInfo.ip)+
+"&city="+encodeURIComponent(userInfo.city)+
+"&country="+encodeURIComponent(userInfo.country)+
+"&browser="+encodeURIComponent(browser)+
+"&device="+encodeURIComponent(device)+
+"&start="+encodeURIComponent(startTime)+
 "&end="+encodeURIComponent(endTime)+
+"&q1="+encodeURIComponent(ans[0]||"")+
+"&q2="+encodeURIComponent(ans[1]||"")+
+"&q3="+encodeURIComponent(ans[2]||"")+
+"&q4="+encodeURIComponent(ans[3]||"");
 
-"&q1="+encodeURIComponent(answers[0]||"")+
-"&q2="+encodeURIComponent(answers[1]||"")+
-"&q3="+encodeURIComponent(answers[2]||"")+
-"&q4="+encodeURIComponent(answers[3]||"")+
-
-"&ip="+encodeURIComponent(userInfo.ip||"")+
-"&city="+encodeURIComponent(userInfo.city||"")+
-"&country="+encodeURIComponent(userInfo.country||"")+
-"&browser="+encodeURIComponent(userInfo.browser||"")+
-"&device="+encodeURIComponent(userInfo.device||"");
-
-let img=new Image();
-img.src=url;
+(new Image()).src=url;
 }
 
-// PASSCODE 1
+// ==========================
+// QUIZ LOGIC
+// ==========================
+let ans=[];
+let cur=0;
+let startTime="",endTime="";
+
+let qs=[
+{q:"1. Who are you?",o:["Bittu","Kittu","Cat","Banty"]},
+{q:"2. Are you?",o:["Male","Female","Prefer not"]},
+{q:"3. All good?",o:["Yes","No"]},
+{q:"4. Submit?",o:["Cancel","Submit"]}
+];
+
 function checkPass1(){
 if(pass1.value==="1921$"){
 step1.classList.add("hidden");
 step2.classList.remove("hidden");
-document.querySelector(".door").style.display="none";
-}else msg1.innerText="Wrong ❌";
+}
 }
 
-// PASSCODE 2
 function checkPass2(){
 if(pass2.value==="6369$"){
-
-if(!ipLoaded){
-msg2.innerText="⏳ Loading...";
-return;
-}
-
+if(!loaded){msg2.innerText="Loading...";return;}
 step2.classList.add("hidden");
 quizBox.classList.remove("hidden");
-
 startTime=new Date().toLocaleString();
-loadQuestion();
-
-}else msg2.innerText="Wrong ❌";
+loadQ();
+}
 }
 
-// QUESTIONS
-let questions=[
-{q:"1. Who are you?",options:["Bittu","Kittu","Cat","Banty"]},
-{q:"2. Are you?",options:["Male","Female","Prefer not to say"]},
-{q:"3. Is everything alright?",options:["Yes","No"]},
-{q:"4. Submit to me?",options:["Cancel","Submit"]}
-];
-
-// LOAD QUESTION
-function loadQuestion(){
-quizBox.classList.add("fade-out");
-
-setTimeout(()=>{
-let q=questions[current];
-
+function loadQ(){
+let q=qs[cur];
 question.innerText=q.q;
-tracker.innerText=(current+1)+"/"+questions.length;
+tracker.innerText=(cur+1)+"/"+qs.length;
 
-let html="";
-q.options.forEach(opt=>{
-html+=`<div class="option" onclick="nextQuestion('${opt}')">${opt}</div>`;
+let h="";
+q.o.forEach(x=>{
+h+=`<div class="option" onclick="nextQ('${x}')">${x}</div>`;
 });
-
-options.innerHTML=html;
-quizBox.classList.remove("fade-out");
-},300);
+options.innerHTML=h;
 }
 
-// NEXT
-function nextQuestion(choice){
+function nextQ(c){
+ans.push(c);
 
-answers.push(choice);
-
-if(current===questions.length-1){
-if(choice==="Submit"){
+if(cur===qs.length-1){
+if(c==="Submit"){
 endTime=new Date().toLocaleString();
-sendToSheet();
-quizBox.innerHTML="<h2>👻 You notified Ghost</h2>";
+sendData();
+quizBox.innerHTML="<h2>Submitted ✅</h2>";
 }
 return;
 }
-
-current++;
-loadQuestion();
+cur++;
+loadQ();
 }
 
+// ==========================
 // CLOSE TRACK
+// ==========================
 window.addEventListener("beforeunload",()=>{
 endTime=new Date().toLocaleString();
-
-let url=scriptURL+
-"?start="+encodeURIComponent(startTime)+
-"&end="+encodeURIComponent(endTime);
-
-let img=new Image();
-img.src=url;
+sendData();
 });
 
-// GHOST
+// ==========================
+// GHOST ROOM
+// ==========================
 function openGhost(){
 step1.classList.add("hidden");
 step2.classList.add("hidden");
@@ -332,16 +297,12 @@ if(ghostPass.value==="GhostRoom1921$"){
 ghostLogin.classList.add("hidden");
 ghostRoom.classList.remove("hidden");
 
-let data="";
-answers.forEach((a,i)=>{
-data+=`<p><b>Q${i+1}</b>: ${a}</p>`;
-});
-
-report.innerHTML=data||"No data yet";
-}else ghostMsg.innerText="Wrong ❌";
+let d="";
+ans.forEach((a,i)=>{d+=`<p>Q${i+1}: ${a}</p>`});
+report.innerHTML=d||"No data";
+}
 }
 
 </script>
-
 </body>
 </html>
