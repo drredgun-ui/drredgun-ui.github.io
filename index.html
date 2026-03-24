@@ -1,238 +1,358 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Test 🔐</title>
-
-<style>
-body{
-margin:0;
-font-family:Arial;
-background:linear-gradient(135deg,#1e1e2f,#3a0ca3);
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-min-height:100vh;
-}
-
-.box{
-background:rgba(255,255,255,0.1);
-padding:25px;
-border-radius:20px;
-width:90%;
-max-width:400px;
-text-align:center;
-}
-
-.hidden{display:none;}
-
-.option{
-margin:10px 0;
-padding:12px;
-background:#7209b7;
-border-radius:12px;
-cursor:pointer;
-}
-
-.option:hover{
-background:#b5179e;
-}
-
-input,button{
-width:90%;
-padding:10px;
-margin-top:10px;
-border-radius:10px;
-border:none;
-}
-
-button{
-background:#ff4d6d;
-color:white;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Online Test Portal</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0c0c1a 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; overflow-x: hidden;
+        }
+        .container { width: 90%; max-width: 500px; padding: 20px; }
+        .card {
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 40px 30px; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: slideIn 0.6s ease;
+        }
+        @keyframes slideIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        
+        h2 { text-align:center; margin-bottom:30px; font-size:1.8rem; 
+             background: linear-gradient(45deg, #00d4ff, #0099cc); 
+             -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        input {
+            width:100%; padding:18px; font-size:1.2rem; text-align:center;
+            border:none; border-radius:15px; background:rgba(255,255,255,0.15);
+            color:#fff; margin-bottom:25px; backdrop-filter:blur(10px);
+            transition: all 0.3s;
+        }
+        input::placeholder { color: rgba(255,255,255,0.6); }
+        input:focus { outline:none; background:rgba(255,255,255,0.25); 
+                      box-shadow: 0 0 25px rgba(0,212,255,0.4); }
+        
+        .btn {
+            width:100%; padding:18px; font-size:1.1rem; font-weight:600;
+            border:none; border-radius:15px; cursor:pointer;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing:1px;
+        }
+        .btn-primary { 
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .btn-primary:hover { transform:translateY(-3px); box-shadow:0 15px 40px rgba(0,212,255,0.5); }
+        .btn-success { 
+            background: linear-gradient(45deg, #00b894, #00a085);
+            box-shadow: 0 10px 30px rgba(0,184,148,0.4);
+        }
+        
+        .question-container { margin:30px 0; min-height:250px; display:flex; flex-direction:column; gap:15px; }
+        .question { font-size:1.4rem; font-weight:600; margin-bottom:25px; line-height:1.4; }
+        .option {
+            padding:18px 25px; background:rgba(255,255,255,0.1); border-radius:15px;
+            cursor:pointer; transition:all 0.3s; border:2px solid transparent; font-size:1.1rem;
+        }
+        .option:hover { background:rgba(255,255,255,0.2); transform:translateX(8px); 
+                        border-color:rgba(0,212,255,0.5); }
+        .option.selected { 
+            background: linear-gradient(45deg, #00d4ff, #0099cc); 
+            border-color:#00d4ff; box-shadow:0 12px 35px rgba(0,212,255,0.4);
+        }
+        
+        .progress-bar { width:100%; height:10px; background:rgba(255,255,255,0.1); 
+                        border-radius:6px; margin-bottom:25px; overflow:hidden; }
+        .progress-fill { height:100%; background:linear-gradient(90deg, #00d4ff, #00b894);
+                         width:0%; transition:width 0.6s ease; border-radius:6px; }
+        
+        .question-counter { text-align:center; font-size:1.2rem; color:rgba(255,255,255,0.8); margin-bottom:20px; }
+        
+        .hidden { display:none !important; }
+        .fade-out { animation: fadeOut 0.5s ease forwards; }
+        @keyframes fadeOut { to { opacity:0; transform:translateY(-20px); } }
+        
+        .loading { text-align:center; padding:50px; }
+        .spinner {
+            width:50px; height:50px; border:4px solid rgba(255,255,255,0.2);
+            border-top:4px solid #00d4ff; border-radius:50%;
+            animation: spin 1s linear infinite; margin:0 auto 25px;
+        }
+        @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+        
+        .success-screen { text-align:center; }
+        .success-screen h2 { color:#00b894; margin-bottom:25px; }
+        
+        /* TEST BUTTON */
+        .test-btn {
+            position:fixed; top:15px; right:15px; z-index:9999;
+            padding:12px 24px; background:#ff6b6b; color:white;
+            border:none; border-radius:10px; cursor:pointer; font-weight:bold;
+            box-shadow:0 5px 15px rgba(255,107,107,0.4);
+        }
+        .test-btn:hover { background:#ff5252; transform:translateY(-2px); }
+        
+        @media (max-width:480px) {
+            .container { padding:15px; }
+            .card { padding:30px 20px; }
+            h2 { font-size:1.5rem; }
+        }
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <!-- 🔐 PASSCODE 1 -->
+        <div id="passcode1" class="card">
+            <h2>🔐 Passcode 1</h2>
+            <input type="password" id="input1" placeholder="Enter passcode" maxlength="20">
+            <button class="btn btn-primary" onclick="checkPass1()">Continue →</button>
+        </div>
 
-<div class="box" id="step1">
-<h2>Enter Passcode 🔐</h2>
-<input type="password" id="pass1">
-<button onclick="checkPass1()">Enter</button>
-<p id="msg1"></p>
-</div>
+        <!-- 🔐 PASSCODE 2 -->
+        <div id="passcode2" class="card hidden">
+            <h2>🔐 Passcode 2</h2>
+            <input type="password" id="input2" placeholder="Enter passcode" maxlength="20">
+            <button class="btn btn-primary" onclick="checkPass2()">Start Test →</button>
+            <button class="btn" onclick="backPass1()" style="margin-top:15px;background:rgba(255,255,255,0.2);">← Back</button>
+        </div>
 
-<div class="box hidden" id="step2">
-<h2>Second Passcode 🔑</h2>
-<input type="password" id="pass2">
-<button onclick="checkPass2()">Enter</button>
-<p id="msg2"></p>
-</div>
+        <!-- 🆔 STUDENT ID -->
+        <div id="studentId" class="card hidden">
+            <h2>🆔 Student ID</h2>
+            <input type="text" id="studIdInput" placeholder="Enter Student ID (saved permanently)">
+            <button class="btn btn-primary" onclick="saveStudent()">Begin Quiz →</button>
+        </div>
 
-<div class="box hidden" id="quizBox">
-<h2 id="question"></h2>
-<div id="options"></div>
-</div>
+        <!-- ⏳ LOADING -->
+        <div id="loading" class="card hidden">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>🔍 Detecting location & device...</p>
+            </div>
+        </div>
 
-<script>
+        <!-- 📝 QUIZ -->
+        <div id="quiz" class="card hidden">
+            <h2>📝 Assessment Test</h2>
+            <div class="question-counter" id="qCounter">Question 1/4</div>
+            <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+            <div class="question-container">
+                <div class="question" id="question"></div>
+                <div id="options"></div>
+                <div style="margin-top:30px;">
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="width:48%;">Next</button>
+                    <button class="btn btn-success" id="submitBtn" onclick="submitQuiz()" style="width:48%;display:none;">✅ Submit</button>
+                </div>
+            </div>
+        </div>
 
-// ==========================
-// 🔥 GOOGLE SCRIPT URL (PUT YOURS)
-// ==========================
-let scriptURL = "https://script.google.com/macros/s/AKfycby7ZbhTUrd733F5-Ah5yAcd54w5aEe8egR68DIpcvSeN8PwRaRISo_YfRgjA9p4Nk5n/exec";
+        <!-- ✅ SUCCESS -->
+        <div id="success" class="card hidden success-screen">
+            <h2>✅ Test Completed!</h2>
+            <p>🎉 Thank you! Your results are saved.</p>
+            <button class="btn btn-success" onclick="location.reload()">🔄 New Test</button>
+        </div>
+    </div>
 
-// ==========================
-// 🔥 STUDENT ID
-// ==========================
-let studentID = localStorage.getItem("studentID");
-if (!studentID) {
-  studentID = "STU-" + Date.now();
-  localStorage.setItem("studentID", studentID);
-}
+    <!-- 🧪 TEST BUTTON -->
+    <button class="test-btn" onclick="testConnection()">🧪 Test Sheet</button>
 
-// ==========================
-// 🔥 DEVICE ID
-// ==========================
-function getDeviceID(){
-  let data = navigator.userAgent + screen.width + screen.height;
-  let hash = 0;
-  for (let i=0;i<data.length;i++){
-    hash = ((hash<<5)-hash)+data.charCodeAt(i);
-    hash |= 0;
-  }
-  return "DEV-"+Math.abs(hash);
-}
-let deviceID = getDeviceID();
+    <script>
+        // ==================== CONFIG ====================
+        const PASSCODE1 = 'test123';
+        const PASSCODE2 = 'quiz456';
+        
+        // 👇 REPLACE WITH YOUR GOOGLE SCRIPT URL
+        const SHEET_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+        
+        // ==================== QUESTIONS ====================
+        const questions = [
+            { q: "What is 15 × 3?", options: ["40", "45", "50", "55"] },
+            { q: "Capital of Japan?", options: ["Beijing", "Seoul", "Tokyo", "Bangkok"] },
+            { q: "Largest planet?", options: ["Earth", "Mars", "Jupiter", "Saturn"] },
+            { q: "2² + 3² = ?", options: ["10", "13", "15", "20"] }
+        ];
 
-// ==========================
-// 🌍 LOCATION
-// ==========================
-let userInfo = {ip:"",city:"",country:""};
+        // ==================== STATE ====================
+        let currentQ = 0, answers = {}, studentData = {}, startTime = null;
 
-async function getLocation(){
-  try{
-    let res = await fetch("https://ipapi.co/json/");
-    let data = await res.json();
+        // ==================== PASSCODES ====================
+        function checkPass1() {
+            if (document.getElementById('input1').value === PASSCODE1) {
+                fadeOut('passcode1'); setTimeout(() => showScreen('passcode2'), 400);
+            } else alert('❌ Wrong passcode!');
+        }
 
-    userInfo.ip = data.ip || "NA";
-    userInfo.city = data.city || "NA";
-    userInfo.country = data.country_name || "NA";
-  }catch{
-    userInfo.ip="NA";
-    userInfo.city="NA";
-    userInfo.country="NA";
-  }
-}
+        function checkPass2() {
+            if (document.getElementById('input2').value === PASSCODE2) {
+                fadeOut('passcode2'); setTimeout(() => showScreen('studentId'), 400);
+            } else alert('❌ Wrong passcode!');
+        }
 
-// ==========================
-// 📤 SEND DATA
-// ==========================
-function sendData(){
+        function backPass1() { fadeOut('passcode2'); setTimeout(() => showScreen('passcode1'), 400); }
 
-  let url = scriptURL +
-  "?studentID=" + studentID +
-  "&deviceID=" + deviceID +
-  "&ip=" + userInfo.ip +
-  "&city=" + userInfo.city +
-  "&country=" + userInfo.country +
-  "&browser=" + navigator.userAgent +
-  "&device=" + navigator.platform +
-  "&start=" + startTime +
-  "&end=" + endTime +
-  "&q1=" + (answers[0]||"") +
-  "&q2=" + (answers[1]||"") +
-  "&q3=" + (answers[2]||"") +
-  "&q4=" + (answers[3]||"");
+        function saveStudent() {
+            const id = document.getElementById('studIdInput').value.trim();
+            if (!id) return alert('Enter Student ID');
+            
+            localStorage.setItem('studentID', id);
+            studentData.studentID = id;
+            
+            fadeOut('studentId'); setTimeout(startQuiz, 400);
+        }
 
-  fetch(url)
-  .then(()=>console.log("Sent"))
-  .catch(()=>console.log("Error"));
-}
+        // ==================== QUIZ START ====================
+        async function startQuiz() {
+            showScreen('loading');
+            
+            try {
+                // 📱 DEVICE INFO
+                const fingerprint = btoa(navigator.userAgent + screen.width + screen.height).slice(0, 20);
+                studentData.deviceID = fingerprint;
+                studentData.browser = navigator.userAgentData?.brands[0]?.brand || 'Chrome';
+                studentData.device = /Mobi|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop';
+                
+                // 🌍 IP LOCATION
+                const ipData = await (await fetch('https://ipapi.co/json/')).json();
+                studentData.ip = ipData.ip || 'N/A';
+                studentData.city = ipData.city || 'N/A';
+                studentData.country = ipData.country_name || 'N/A';
+                
+                startTime = new Date().toISOString();
+                studentData.start = startTime;
+                
+                showScreen('quiz');
+                loadQuestion();
+                
+            } catch(e) {
+                // FALLBACK
+                studentData.ip = studentData.city = studentData.country = 'N/A';
+                startTime = new Date().toISOString();
+                studentData.start = startTime;
+                showScreen('quiz');
+                loadQuestion();
+            }
+        }
 
-// ==========================
-// QUIZ
-// ==========================
-let answers=[];
-let current=0;
-let startTime="";
-let endTime="";
+        // ==================== QUIZ FUNCTIONS ====================
+        function loadQuestion() {
+            const q = questions[currentQ];
+            document.getElementById('question').textContent = q.q;
+            document.getElementById('qCounter').textContent = `Question ${currentQ + 1}/4`;
+            
+            const container = document.getElementById('options');
+            container.innerHTML = '';
+            
+            q.options.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.innerHTML = opt;
+                div.onclick = () => selectAnswer(i, div);
+                container.appendChild(div);
+            });
+            
+            updateProgress();
+            document.getElementById('nextBtn').style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'none';
+        }
 
-let questions=[
-{q:"1. Who are you?",o:["Bittu","Kittu","Cat","Banty"]},
-{q:"2. Are you?",o:["Male","Female","Prefer not"]},
-{q:"3. All good?",o:["Yes","No"]},
-{q:"4. Submit?",o:["Cancel","Submit"]}
-];
+        function selectAnswer(index, el) {
+            document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            answers[`q${currentQ + 1}`] = index;
+        }
 
-// ==========================
-// PASSCODE
-// ==========================
-function checkPass1(){
-if(pass1.value==="1921$"){
-step1.classList.add("hidden");
-step2.classList.remove("hidden");
-}else msg1.innerText="Wrong ❌";
-}
+        function nextQuestion() {
+            if (currentQ < 3) {
+                currentQ++;
+                fadeOut('quiz');
+                setTimeout(loadQuestion, 400);
+            }
+        }
 
-async function checkPass2(){
+        function updateProgress() {
+            const progress = ((currentQ + 1) / 4) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            
+            if (currentQ === 3) {
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('submitBtn').style.display = 'inline-block';
+            }
+        }
 
-if(pass2.value==="6369$"){
+        // ==================== SUBMIT ====================
+        async function submitQuiz() {
+            studentData.end = new Date().toISOString();
+            Object.assign(studentData, answers);
+            
+            try {
+                const params = new URLSearchParams(studentData);
+                const url = SHEET_URL + '?' + params.toString();
+                
+                // 🎯 SEND DATA (2 methods for reliability)
+                await fetch(url);
+                navigator.sendBeacon(url);
+                
+                fadeOut('quiz');
+                setTimeout(() => showScreen('success'), 400);
+                
+            } catch(e) {
+                alert('❌ Submit failed: ' + e.message);
+            }
+        }
 
-msg2.innerText="Loading...";
+        // ==================== UTILS ====================
+        function showScreen(id) {
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
 
-await getLocation(); // VERY IMPORTANT
+        function fadeOut(id) {
+            document.getElementById(id).classList.add('fade-out');
+        }
 
-step2.classList.add("hidden");
-quizBox.classList.remove("hidden");
+        // ==================== TEST CONNECTION ====================
+        async function testConnection() {
+            const testData = new URLSearchParams({
+                studentID: 'TEST_' + Date.now(),
+                deviceID: 'test',
+                ip: '1.1.1.1', city: 'Test', country: 'Test',
+                browser: 'Test', device: 'Test',
+                start: new Date().toISOString(),
+                end: new Date().toISOString(),
+                q1: '0', q2: '1', q3: '2', q4: '3'
+            });
+            
+            try {
+                const res = await fetch(SHEET_URL + '?' + testData);
+                const result = await res.text();
+                alert('🎉 CONNECTION: ' + result);
+            } catch(e) {
+                alert('❌ ERROR: ' + e.message + '\n\nCheck your SHEET_URL');
+            }
+        }
 
-startTime=new Date().toLocaleString();
+        // ==================== INIT ====================
+        window.onload = () => {
+            const savedId = localStorage.getItem('studentID');
+            if (savedId) {
+                document.getElementById('studIdInput').value = savedId;
+                showScreen('passcode1');
+            }
+        };
 
-loadQuestion();
-
-}else msg2.innerText="Wrong ❌";
-}
-
-// ==========================
-// LOAD QUESTION
-// ==========================
-function loadQuestion(){
-
-let q=questions[current];
-
-question.innerText=q.q;
-
-let html="";
-q.o.forEach(opt=>{
-html+=`<div class="option" onclick="nextQuestion('${opt}')">${opt}</div>`;
-});
-
-options.innerHTML=html;
-}
-
-// ==========================
-// NEXT QUESTION
-// ==========================
-function nextQuestion(choice){
-
-answers.push(choice);
-
-if(current===questions.length-1){
-
-if(choice==="Submit"){
-endTime=new Date().toLocaleString();
-sendData();
-quizBox.innerHTML="<h2>Submitted ✅</h2>";
-}
-return;
-}
-
-current++;
-loadQuestion();
-}
-
-</script>
-
+        // 🛡️ TRACK TAB CLOSE
+        window.onbeforeunload = () => {
+            if (startTime && currentQ < 4) {
+                const data = {...studentData, end: new Date().toISOString(), status: 'ABANDONED'};
+                Object.assign(data, answers);
+                navigator.sendBeacon(SHEET_URL + '?' + new URLSearchParams(data));
+            }
+        };
+    </script>
 </body>
 </html>
